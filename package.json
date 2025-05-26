@@ -1,7 +1,7 @@
 {
   "name": "valtor",
   "description": "TypeScript library for fluent, chainable validation.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "main": "./lib/index.cjs",
   "module": "./lib/index.js",
@@ -51,7 +51,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/saffr3n/valtor.git"
+    "url": "git+https://github.com/saffr3n/valtor.git"
   },
   "license": "MIT"
 }
