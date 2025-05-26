@@ -1,0 +1,57 @@
+{
+  "name": "valtor",
+  "description": "TypeScript library for fluent, chainable validation.",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./lib/index.cjs",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      },
+      "require": {
+        "types": "./lib/index.d.cts",
+        "default": "./lib/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rimraf lib",
+    "check": "tsc --noEmit",
+    "build": "npm run clean && npm run check && tsup",
+    "prepack": "npm run build",
+    "lint": "eslint src",
+    "format": "prettier -w src"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "@types/node": "^22.15.21",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
+    "globals": "^16.2.0",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1"
+  },
+  "author": "Sergey Fomin <saffr3n@gmail.com>",
+  "homepage": "https://github.com/saffr3n/valtor#readme",
+  "bugs": {
+    "url": "https://github.com/saffr3n/valtor/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/saffr3n/valtor.git"
+  },
+  "license": "MIT"
+}
