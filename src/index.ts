@@ -1,5 +1,6 @@
 import ValidatorImpl, { type Validator } from './validator';
 import ValidationError from './utils/validation-error';
+import type { NullableOptions } from './methods/nullable';
 
 /**
  * Creates a new {@link Validator} instance for the given `value`.
@@ -15,4 +16,4 @@ export default function validate<Return>(
   return new ValidatorImpl(value, name);
 }
 
-export { ValidationError, type Validator };
+export { ValidationError, type Validator, type NullableOptions };

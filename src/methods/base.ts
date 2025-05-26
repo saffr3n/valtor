@@ -1,4 +1,8 @@
-import type { Validator, IValidator } from '../validator'; // eslint-disable-line
+import type { Validator, ValidatorState } from '../validator';
+import type { NullableOptions, RequiredReturn } from './nullable';
+import type { Override } from '../utils/types';
+
+import type { IValidator } from '../validator'; // eslint-disable-line
 import type ValidationError from '../utils/validation-error'; // eslint-disable-line
 
 /** @internal */
@@ -12,6 +16,24 @@ interface Get<Return> {
   get(): Return;
 }
 
+/** @internal */
+interface SetFallback<Return, State extends ValidatorState> {
+  /**
+   * Sets a fallback `value` if the validated value is missing.
+   *
+   * @param value - The fallback value.
+   * @param options - Optional settings.
+   * @returns The same {@link Validator} instance with its state updated.
+   */
+  setFallback<Options extends NullableOptions>(
+    value: RequiredReturn<Return, Options>,
+    options?: Options,
+  ): Validator<
+    RequiredReturn<Return, Options>,
+    Override<State, { canSetFallback: false }>
+  >;
+}
+
 /**
  * Groups all base methods.
  *
@@ -19,7 +41,9 @@ interface Get<Return> {
  *
  * @internal
  */
-export interface IBaseMethods<Return> extends Get<Return> {}
+export interface IBaseMethods<Return, State extends ValidatorState>
+  extends Get<Return>,
+    SetFallback<Return, State> {}
 
 /**
  * Mixes base methods into the validation chain when appropriate.
@@ -28,4 +52,5 @@ export interface IBaseMethods<Return> extends Get<Return> {}
  *
  * @internal
  */
-export type BaseMethods<Return> = Get<Return>;
+export type BaseMethods<Return, State extends ValidatorState> = Get<Return>
+  & (State['canSetFallback'] extends true ? SetFallback<Return, State> : {});
