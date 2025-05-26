@@ -15,5 +15,6 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   ts.configs.recommended,
+  { rules: { '@typescript-eslint/no-empty-object-type': 'off' } },
   prettier,
 ]);
