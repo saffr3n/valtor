@@ -1,3 +1,4 @@
+import isEqual from './utils/is-equal';
 import ValidationError from './utils/validation-error';
 import type { BaseMethods, IBaseMethods } from './methods/base';
 import type {
@@ -6,6 +7,11 @@ import type {
   NullableOptions,
   RequiredReturn,
 } from './methods/nullable';
+import type {
+  EqualityMethods,
+  EqualityOptions,
+  IEqualityMethods,
+} from './methods/equality';
 import type { IsPossibly, Override } from './utils/types';
 
 import type validate from './index'; // eslint-disable-line
@@ -25,7 +31,8 @@ export interface ValidatorState {
  */
 export interface IValidator<Return, State extends ValidatorState>
   extends IBaseMethods<Return, State>,
-    INullableMethods<Return, State> {}
+    INullableMethods<Return, State>,
+    IEqualityMethods<Return, State> {}
 
 /**
  * A chainable validator instance returned by {@link validate | validate()}.
@@ -39,7 +46,9 @@ export type Validator<
     isNullableApplied: false;
     canSetFallback: IsPossibly<null | undefined, Return>;
   },
-> = BaseMethods<Return, State> & NullableMethods<Return, State>;
+> = BaseMethods<Return, State>
+  & NullableMethods<Return, State>
+  & EqualityMethods<Return, State>;
 
 /** @internal */
 export default class ValidatorImpl<Return, State extends ValidatorState>
@@ -47,6 +56,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
 {
   private value: Return;
   private name: string | undefined;
+  private chain: (() => void)[] = [];
   private opts = {
     isRequired: false,
     allowNull: false,
@@ -63,6 +73,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
         `value is required but was ${this.value === null ? 'null' : 'undefined'}`,
       );
     }
+    for (const fn of this.chain) fn();
     return this.value;
   }
 
@@ -93,6 +104,54 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     return this.refine<Return, Override<State, { isNullableApplied: true }>>();
   }
 
+  public isEqual<const Value extends Return>(
+    value: Value,
+    options?: EqualityOptions,
+  ) {
+    this.chain.push(() => {
+      if (!isEqual(this.value, value, options)) {
+        this.fail(`expected value to equal ${this.stringify(value)}`);
+      }
+    });
+    return this.refine<Value>();
+  }
+
+  public notEqual<const Value extends Return>(
+    value: Value,
+    options?: EqualityOptions,
+  ) {
+    this.chain.push(() => {
+      if (isEqual(this.value, value, options)) {
+        this.fail(`expected value to NOT equal: ${this.stringify(value)}`);
+      }
+    });
+    return this.refine<Exclude<Return, Value>>();
+  }
+
+  public isIn<const Values extends readonly Return[]>(
+    values: Values,
+    options?: EqualityOptions,
+  ) {
+    this.chain.push(() => {
+      if (values.every((v) => !isEqual(this.value, v, options))) {
+        this.fail(`expected value to be one of: ${this.stringify(values)}`);
+      }
+    });
+    return this.refine<Values[number]>();
+  }
+
+  public notIn<const Values extends readonly Return[]>(
+    values: Values,
+    options?: EqualityOptions,
+  ) {
+    this.chain.push(() => {
+      if (values.some((v) => isEqual(this.value, v, options))) {
+        this.fail(`expected value NOT to be any of: ${this.stringify(values)}`);
+      }
+    });
+    return this.refine<Exclude<Return, Values[number]>>();
+  }
+
   private refine<NewReturn, NewState extends ValidatorState = State>() {
     return this as unknown as Validator<NewReturn, NewState>;
   }
@@ -102,6 +161,14 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
       ? `Validation failed for '${this.name}':`
       : 'Validation failed:';
     throw new ValidationError(`${prefix} ${message}`);
+  }
+
+  private stringify(value: unknown) {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
   }
 
   private get isValueMissing() {
