@@ -6,5 +6,6 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   platform: 'neutral',
   dts: true,
+  keepNames: true,
   splitting: false,
 });
