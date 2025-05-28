@@ -1,4 +1,5 @@
 import isEqual from './utils/is-equal';
+import stringify from './utils/stringify';
 import ValidationError from './utils/validation-error';
 import type { BaseMethods, IBaseMethods } from './methods/base';
 import type {
@@ -110,7 +111,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   ) {
     this.chain.push(() => {
       if (!isEqual(this.value, value, options)) {
-        this.fail(`expected value to equal ${this.stringify(value)}`);
+        this.fail(`expected value to equal ${stringify(value)}`);
       }
     });
     return this.refine<Value>();
@@ -122,7 +123,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   ) {
     this.chain.push(() => {
       if (isEqual(this.value, value, options)) {
-        this.fail(`expected value to NOT equal: ${this.stringify(value)}`);
+        this.fail(`expected value to NOT equal: ${stringify(value)}`);
       }
     });
     return this.refine<Exclude<Return, Value>>();
@@ -134,7 +135,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   ) {
     this.chain.push(() => {
       if (values.every((v) => !isEqual(this.value, v, options))) {
-        this.fail(`expected value to be one of: ${this.stringify(values)}`);
+        this.fail(`expected value to be one of: ${stringify(values)}`);
       }
     });
     return this.refine<Values[number]>();
@@ -146,7 +147,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   ) {
     this.chain.push(() => {
       if (values.some((v) => isEqual(this.value, v, options))) {
-        this.fail(`expected value NOT to be any of: ${this.stringify(values)}`);
+        this.fail(`expected value NOT to be any of: ${stringify(values)}`);
       }
     });
     return this.refine<Exclude<Return, Values[number]>>();
@@ -161,14 +162,6 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
       ? `Validation failed for '${this.name}':`
       : 'Validation failed:';
     throw new ValidationError(`${prefix} ${message}`);
-  }
-
-  private stringify(value: unknown) {
-    try {
-      return JSON.stringify(value);
-    } catch {
-      return String(value);
-    }
   }
 
   private get isValueMissing() {

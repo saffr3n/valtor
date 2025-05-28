@@ -1,5 +1,8 @@
 import isArrayLike from './is-array-like';
+import safeAccess from './safe-access';
 import type { EqualityOptions } from '../methods/equality';
+
+// TODO: handle circular references
 
 /** @internal */
 export default function isEqual(
@@ -208,13 +211,4 @@ function tryCompareObject(a: object, b: object, opts: EqualityOptions) {
   }
 
   return undefined;
-}
-
-/** @internal */
-function safeAccess(obj: object, key: string | symbol) {
-  try {
-    return obj[key as keyof typeof obj];
-  } catch {
-    return undefined;
-  }
 }
