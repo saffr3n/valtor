@@ -31,7 +31,7 @@ export interface ValidatorState {
  * @internal
  */
 export interface IValidator<Return, State extends ValidatorState>
-  extends IBaseMethods<Return, State>,
+  extends IBaseMethods<Return>,
     INullableMethods<Return, State>,
     IEqualityMethods<Return, State> {}
 
@@ -47,7 +47,7 @@ export type Validator<
     isNullableApplied: false;
     canSetFallback: IsPossibly<null | undefined, Return>;
   },
-> = BaseMethods<Return, State>
+> = BaseMethods<Return>
   & NullableMethods<Return, State>
   & EqualityMethods<Return, State>;
 
@@ -87,7 +87,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     if (this.isValueMissing) this.value = value as Return;
     return this.refine<
       RequiredReturn<Return, Options>,
-      Override<State, { canSetFallback: false }>
+      Override<State, { canSetFallback: false; isNullableApplied: true }>
     >();
   }
 

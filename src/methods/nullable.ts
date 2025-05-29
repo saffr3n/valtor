@@ -13,6 +13,24 @@ export interface NullableOptions {
 }
 
 /** @internal */
+interface SetFallback<Return, State extends ValidatorState> {
+  /**
+   * Sets a fallback `value` if the validated value is missing.
+   *
+   * @param value - The fallback value.
+   * @param options - Optional settings.
+   * @returns The same {@link Validator} instance with its state updated.
+   */
+  setFallback<Options extends NullableOptions>(
+    value: RequiredReturn<Return, Options>,
+    options?: Options,
+  ): Validator<
+    RequiredReturn<Return, Options>,
+    Override<State, { canSetFallback: false; isNullableApplied: true }>
+  >;
+}
+
+/** @internal */
 interface IsRequired<Return, State extends ValidatorState> {
   /**
    * Marks the validated value as required (non-missing).
@@ -49,7 +67,8 @@ interface NotRequired<Return, State extends ValidatorState> {
  * @internal
  */
 export interface INullableMethods<Return, State extends ValidatorState>
-  extends IsRequired<Return, State>,
+  extends SetFallback<Return, State>,
+    IsRequired<Return, State>,
     NotRequired<Return, State> {}
 
 /**
@@ -62,11 +81,12 @@ export interface INullableMethods<Return, State extends ValidatorState>
 export type NullableMethods<
   Return,
   State extends ValidatorState,
-> = State['isNullableApplied'] extends true
-  ? {}
-  : IsPossibly<null | undefined, Return> extends true
-    ? INullableMethods<Return, State>
-    : {};
+> = (State['canSetFallback'] extends true ? SetFallback<Return, State> : {})
+  & (State['isNullableApplied'] extends true
+    ? {}
+    : IsPossibly<null | undefined, Return> extends true
+      ? IsRequired<Return, State> & NotRequired<Return, State>
+      : {});
 
 /**
  * Excludes `undefined` and `null` (unless {@link Options.allowNull} = `true`)
