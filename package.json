@@ -1,7 +1,7 @@
 {
   "name": "valtor",
   "description": "TypeScript library for fluent, chainable validation.",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "type": "module",
   "main": "./lib/index.cjs",
   "module": "./lib/index.js",
