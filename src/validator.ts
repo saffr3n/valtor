@@ -59,6 +59,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   private value: Return;
   private name: string | undefined;
   private chain: (() => void)[] = [];
+  private assert!: ReturnType<ValidatorImpl<Return, State>['buildAssert']>;
   private opts = {
     isRequired: false,
     allowNull: false,
@@ -70,6 +71,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   }
 
   public get() {
+    this.assert = this.buildAssert();
     this.assert.isRequired();
     for (const fn of this.chain) fn();
     return this.value;
@@ -144,7 +146,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     );
   }
 
-  private get assert() {
+  private buildAssert() {
     const actual = stringify(this.value);
     const subject = `The ${
       this.name ? `value of '${this.name}'` : 'validated value'
