@@ -1,5 +1,6 @@
 import isEqual from './utils/is-equal';
 import stringify from './utils/stringify';
+import generateDiff from './utils/generate-diff';
 import ValidationError from './utils/validation-error';
 import type { BaseMethods, IBaseMethods } from './methods/base';
 import type {
@@ -69,11 +70,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   }
 
   public get() {
-    if (this.opts.isRequired && this.isValueMissing) {
-      this.fail(
-        `value is required but was ${this.value === null ? 'null' : 'undefined'}`,
-      );
-    }
+    this.assert.isRequired();
     for (const fn of this.chain) fn();
     return this.value;
   }
@@ -109,11 +106,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     value: Value,
     options?: EqualityOptions,
   ) {
-    this.chain.push(() => {
-      if (!isEqual(this.value, value, options)) {
-        this.fail(`expected value to equal ${stringify(value)}`);
-      }
-    });
+    this.chain.push(() => this.assert.isEqual(value, options));
     return this.refine<Value>();
   }
 
@@ -121,11 +114,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     value: Value,
     options?: EqualityOptions,
   ) {
-    this.chain.push(() => {
-      if (isEqual(this.value, value, options)) {
-        this.fail(`expected value to NOT equal: ${stringify(value)}`);
-      }
-    });
+    this.chain.push(() => this.assert.notEqual(value, options));
     return this.refine<Exclude<Return, Value>>();
   }
 
@@ -133,11 +122,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     values: Values,
     options?: EqualityOptions,
   ) {
-    this.chain.push(() => {
-      if (values.every((v) => !isEqual(this.value, v, options))) {
-        this.fail(`expected value to be one of: ${stringify(values)}`);
-      }
-    });
+    this.chain.push(() => this.assert.isIn(values, options));
     return this.refine<Values[number]>();
   }
 
@@ -145,11 +130,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     values: Values,
     options?: EqualityOptions,
   ) {
-    this.chain.push(() => {
-      if (values.some((v) => isEqual(this.value, v, options))) {
-        this.fail(`expected value NOT to be any of: ${stringify(values)}`);
-      }
-    });
+    this.chain.push(() => this.assert.notIn(values, options));
     return this.refine<Exclude<Return, Values[number]>>();
   }
 
@@ -157,16 +138,78 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     return this as unknown as Validator<NewReturn, NewState>;
   }
 
-  private fail(message: string) {
-    const prefix = this.name
-      ? `Validation failed for '${this.name}':`
-      : 'Validation failed:';
-    throw new ValidationError(`${prefix} ${message}`);
-  }
-
   private get isValueMissing() {
     return (
-      this.value === void 0 || (!this.opts.allowNull && this.value === null)
+      this.value === undefined || (!this.opts.allowNull && this.value === null)
     );
+  }
+
+  private get assert() {
+    const actual = stringify(this.value);
+    const subject = `The ${
+      this.name ? `value of '${this.name}'` : 'validated value'
+    }`;
+
+    return {
+      isRequired: () => {
+        if (!this.opts.isRequired || !this.isValueMissing) return;
+        const msg = `${subject} is required, but received ${actual}.`;
+        throw new ValidationError(msg);
+      },
+
+      isEqual: (value: unknown, options?: EqualityOptions) => {
+        if (isEqual(this.value, value, options)) return;
+        const msg = `${subject} doesn't match the expected value.`;
+        const expected = stringify(value);
+        const diff = generateDiff(actual, expected);
+        const detail = `Actual (+) vs (-) Expected:\n${diff}`;
+        throw new ValidationError(`${msg}\n\n${detail}`);
+      },
+
+      notEqual: (value: unknown, options?: EqualityOptions) => {
+        if (!isEqual(this.value, value, options)) return;
+        const msg = `${subject} matches the forbidden value.`;
+        const forbidden = stringify(value);
+        const detail = `Forbidden:\n${forbidden}`;
+        throw new ValidationError(`${msg}\n\n${detail}`);
+      },
+
+      isIn: (values: readonly unknown[], options?: EqualityOptions) => {
+        if (values.some((v) => isEqual(this.value, v, options))) return;
+        const msg = `${subject} doesn't match any of the expected values.`;
+        const diffs = values.map((v) => {
+          const expected = stringify(v);
+          return generateDiff(actual, expected);
+        });
+        const list = this.listify(diffs);
+        const detail = `Actual (+) vs (-) Expected:\n${list}`;
+        throw new ValidationError(`${msg}\n\n${detail}`);
+      },
+
+      notIn: (values: readonly unknown[], options?: EqualityOptions) => {
+        for (const v of values) {
+          if (!isEqual(this.value, v, options)) continue;
+          const msg = `${subject} matches one of the forbidden values.`;
+          const prefixed = values.map((u) => {
+            const forbidden = stringify(u);
+            return this.prefixBlock(forbidden, u === v ? '>' : ' ');
+          });
+          const list = this.listify(prefixed);
+          const detail = `Forbidden:\n${list}`;
+          throw new ValidationError(`${msg}\n\n${detail}`);
+        }
+      },
+    };
+  }
+
+  private listify(values: string[]) {
+    return values.map((v) => this.prefixBlock(v, '•')).join('\n');
+  }
+
+  private prefixBlock(block: string, sign: string) {
+    return block
+      .split('\n')
+      .map((l, i) => (i === 0 ? `${sign} ${l}` : `  ${l}`))
+      .join('\n');
   }
 }
