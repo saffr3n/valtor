@@ -14,7 +14,7 @@ import type {
   EqualityOptions,
   IEqualityMethods,
 } from './methods/equality';
-import type { IsPossibly, Override } from './utils/types';
+import type { Exclude, IsPossibly, Override } from './utils/types';
 
 import type validate from './index'; // eslint-disable-line
 

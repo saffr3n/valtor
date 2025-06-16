@@ -1,4 +1,5 @@
 import type { Validator, ValidatorState } from '../validator';
+import type { Exclude } from '../utils/types';
 
 import type { IValidator } from '../validator'; // eslint-disable-line
 
