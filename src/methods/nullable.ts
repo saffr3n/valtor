@@ -1,13 +1,11 @@
-import type { Validator, ValidatorState } from '../validator';
+import type { IValidator, Validator, ValidatorState } from '../validator';
 import type { Defined, IsPossibly, Override } from '../utils/types';
-
-import type { IValidator } from '../validator'; // eslint-disable-line
 
 export interface NullableOptions {
   /**
    * Allows `null` to not be treated as the absence of a value.
    *
-   * @defaultValue `false`
+   * @default false
    */
   allowNull?: boolean;
 }
@@ -18,7 +16,9 @@ interface SetFallback<Return, State extends ValidatorState> {
    * Sets a fallback `value` if the validated value is missing.
    *
    * @param value - The fallback value.
+   *
    * @param options - Optional settings.
+   *
    * @returns The same {@link Validator} instance with its state updated.
    */
   setFallback<Options extends NullableOptions>(
@@ -36,6 +36,7 @@ interface IsRequired<Return, State extends ValidatorState> {
    * Marks the validated value as required (non-missing).
    *
    * @param options - Optional settings.
+   *
    * @returns The same {@link Validator} instance with its state updated.
    */
   isRequired<Options extends NullableOptions>(
@@ -62,7 +63,7 @@ interface NotRequired<Return, State extends ValidatorState> {
 /**
  * Groups all nullable-related methods.
  *
- * @remarks Extended by {@link IValidator}.
+ * Extended by {@link IValidator}.
  *
  * @internal
  */
@@ -74,7 +75,7 @@ export interface INullableMethods<Return, State extends ValidatorState>
 /**
  * Mixes nullable-related methods into the validation chain when appropriate.
  *
- * @remarks Extended by {@link Validator}.
+ * Extended by {@link Validator}.
  *
  * @internal
  */
@@ -89,8 +90,9 @@ export type NullableMethods<
       : {});
 
 /**
- * Excludes `undefined` and `null` (unless {@link Options.allowNull} = `true`)
- * from the `Return` type.
+ * Excludes `undefined` and `null` (unless
+ * {@link NullableOptions.allowNull | Options.allowNull} = `true`) from the
+ * `Return` type.
  *
  * @internal
  */

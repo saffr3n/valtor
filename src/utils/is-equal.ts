@@ -4,7 +4,11 @@ import type { EqualityOptions } from '../methods/equality';
 
 // TODO: handle circular references
 
-/** @internal */
+/**
+ * @returns `true` if `a` equals `b`, otherwise `false`.
+ *
+ * @internal
+ */
 export default function isEqual(
   a: unknown,
   b: unknown,

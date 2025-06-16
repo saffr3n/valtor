@@ -1,14 +1,12 @@
-import type { Validator, ValidatorState } from '../validator';
+import type { IValidator, Validator, ValidatorState } from '../validator';
 import type { Exclude } from '../utils/types';
-
-import type { IValidator } from '../validator'; // eslint-disable-line
 
 export interface EqualityOptions {
   /**
    * Indicates that a `deep` equality check must be performed, allowing to
    * compare nested objects and arrays recursively.
    *
-   * @defaultValue `false`
+   * @default false
    */
   deep?: boolean;
 }
@@ -19,7 +17,9 @@ interface IsEqual<Return, State extends ValidatorState> {
    * Asserts that the validated value is equal to the provided `value`.
    *
    * @param value - The value to compare against.
+   *
    * @param options - Optional settings.
+   *
    * @returns The same {@link Validator} instance with its state updated.
    */
   isEqual<const Value extends Return>(
@@ -34,7 +34,9 @@ interface NotEqual<Return, State extends ValidatorState> {
    * Asserts that the validated value is _not_ equal to the provided `value`.
    *
    * @param value - The value to compare against.
+   *
    * @param options - Optional settings.
+   *
    * @returns The same {@link Validator} instance with its state updated.
    */
   notEqual<const Value extends Return>(
@@ -49,7 +51,9 @@ interface IsIn<Return, State extends ValidatorState> {
    * Asserts that the validated value is one of the provided `values`.
    *
    * @param values - The array of values to compare against.
+   *
    * @param options - Optional settings.
+   *
    * @returns The same {@link Validator} instance with its state updated.
    */
   isIn<const Values extends readonly Return[]>(
@@ -64,7 +68,9 @@ interface NotIn<Return, State extends ValidatorState> {
    * Asserts that the validated value is _not_ any of the provided `values`.
    *
    * @param values - The array of values to compare against.
+   *
    * @param options - Optional settings.
+   *
    * @returns The same {@link Validator} instance with its state updated.
    */
   notIn<const Values extends readonly Return[]>(
@@ -76,7 +82,7 @@ interface NotIn<Return, State extends ValidatorState> {
 /**
  * Groups all equality-related methods.
  *
- * @remarks Extended by {@link IValidator}.
+ * Extended by {@link IValidator}.
  *
  * @internal
  */
@@ -89,7 +95,7 @@ export interface IEqualityMethods<Return, State extends ValidatorState>
 /**
  * Mixes equality-related methods into the validation chain when appropriate.
  *
- * @remarks Extended by {@link Validator}.
+ * Extended by {@link Validator}.
  *
  * @internal
  */

@@ -3,7 +3,11 @@ import safeAccess from './safe-access';
 
 // TODO: handle circular references
 
-/** @internal */
+/**
+ * @returns A `string` representation of the `value`.
+ *
+ * @internal
+ */
 export default function stringify(value: unknown, depth: number = 0): string {
   if (
     value == null

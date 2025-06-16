@@ -15,8 +15,7 @@ import type {
   IEqualityMethods,
 } from './methods/equality';
 import type { Exclude, IsPossibly, Override } from './utils/types';
-
-import type validate from './index'; // eslint-disable-line
+import type validate from './index';
 
 /** @internal */
 export interface ValidatorState {
@@ -27,7 +26,7 @@ export interface ValidatorState {
 /**
  * Groups all validation methods.
  *
- * @remarks Implemented by {@link ValidatorImpl}.
+ * Implemented by {@link ValidatorImpl}.
  *
  * @internal
  */
@@ -39,8 +38,9 @@ export interface IValidator<Return, State extends ValidatorState>
 /**
  * A chainable validator instance returned by {@link validate | validate()}.
  *
- * @typeParam Return - The type of the validated value.
- * @typeParam State - The internal state of the validator.
+ * @template Return - The type of the validated value.
+ *
+ * @template State - The internal state of the validator.
  */
 export type Validator<
   Return,

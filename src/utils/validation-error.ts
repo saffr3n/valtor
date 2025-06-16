@@ -1,4 +1,4 @@
-import type { Validator } from '../validator'; // eslint-disable-line
+import type { Validator } from '../validator';
 
 /**
  * Error thrown by {@link Validator.get | Validator.get()} if validation fails.

@@ -1,4 +1,8 @@
-/** @internal */
+/**
+ * @returns `true` if the `value` is an `ArrayLike<unknown>`, otherwise `false`.
+ *
+ * @internal
+ */
 export default function isArrayLike(
   value: unknown,
 ): value is ArrayLike<unknown> {
