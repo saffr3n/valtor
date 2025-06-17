@@ -1,5 +1,11 @@
 import type { IValidator, Validator, ValidatorState } from '../validator';
-import type { Defined, IsPossibly, Override } from '../utils/types';
+import type {
+  Defined,
+  Extract,
+  IsPossibly,
+  NonNullable,
+  Override,
+} from '../utils/types';
 
 export interface NullableOptions {
   /**
@@ -60,6 +66,43 @@ interface NotRequired<Return, State extends ValidatorState> {
   >;
 }
 
+/** @internal */
+interface IsMissing<Return, State extends ValidatorState> {
+  /**
+   * Marks the validated value as missing (`null` or `undefined`).
+   *
+   * @param options - Optional settings.
+   *
+   * @returns The same {@link Validator} instance with its state updated.
+   */
+  isMissing<Options extends NullableOptions>(
+    options?: Options,
+  ): Validator<
+    Extract<
+      Return,
+      Options['allowNull'] extends true ? undefined : null | undefined
+    >,
+    Override<State, { isNullableApplied: true; canSetFallback: false }>
+  >;
+}
+
+/** @internal */
+interface NotMissing<Return, State extends ValidatorState> {
+  /**
+   * Marks the validated value as required (non-missing).
+   *
+   * @param options - Optional settings.
+   *
+   * @returns The same {@link Validator} instance with its state updated.
+   */
+  notMissing<Options extends NullableOptions>(
+    options?: Options,
+  ): Validator<
+    RequiredReturn<Return, Options>,
+    Override<State, { isNullableApplied: true }>
+  >;
+}
+
 /**
  * Groups all nullable-related methods.
  *
@@ -70,7 +113,9 @@ interface NotRequired<Return, State extends ValidatorState> {
 export interface INullableMethods<Return, State extends ValidatorState>
   extends SetFallback<Return, State>,
     IsRequired<Return, State>,
-    NotRequired<Return, State> {}
+    NotRequired<Return, State>,
+    IsMissing<Return, State>,
+    NotMissing<Return, State> {}
 
 /**
  * Mixes nullable-related methods into the validation chain when appropriate.
@@ -86,7 +131,10 @@ export type NullableMethods<
   & (State['isNullableApplied'] extends true
     ? {}
     : IsPossibly<null | undefined, Return> extends true
-      ? IsRequired<Return, State> & NotRequired<Return, State>
+      ? IsRequired<Return, State>
+          & NotRequired<Return, State>
+          & IsMissing<Return, State>
+          & NotMissing<Return, State>
       : {});
 
 /**

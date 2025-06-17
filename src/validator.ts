@@ -100,6 +100,22 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     return this.refine<Return, Override<State, { isNullableApplied: true }>>();
   }
 
+  public isMissing<Options extends NullableOptions>(options?: Options) {
+    this.opts.allowNull = options?.allowNull ?? false;
+    this.chain.push(() => this.assert.isMissing());
+    return this.refine<
+      Extract<
+        Return,
+        Options['allowNull'] extends true ? undefined : null | undefined
+      >,
+      Override<State, { isNullableApplied: true; canSetFallback: false }>
+    >();
+  }
+
+  public notMissing<Options extends NullableOptions>(options?: Options) {
+    return this.isRequired(options);
+  }
+
   public isEqual<const Value extends Return>(
     value: Value,
     options?: EqualityOptions,
@@ -152,6 +168,12 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
       isRequired: () => {
         if (!this.isValueMissing) return;
         const msg = `${subject} is marked as required, but received ${actual}.`;
+        throw new ValidationError(msg);
+      },
+
+      isMissing: () => {
+        if (this.isValueMissing) return;
+        const msg = `${subject} is marked as missing, but received ${actual}.`;
         throw new ValidationError(msg);
       },
 
