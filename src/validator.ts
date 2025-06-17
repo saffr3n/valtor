@@ -14,7 +14,7 @@ import type {
   EqualityOptions,
   IEqualityMethods,
 } from './methods/equality';
-import type { Exclude, IsPossibly, Override } from './utils/types';
+import type { Exclude, Extract, IsPossibly, Override } from './utils/types';
 import type validate from './index';
 
 /** @internal */
@@ -61,7 +61,6 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   private chain: (() => void)[] = [];
   private assert!: ReturnType<ValidatorImpl<Return, State>['buildAssert']>;
   private opts = {
-    isRequired: false,
     allowNull: false,
   };
 
@@ -72,7 +71,6 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
 
   public get() {
     this.assert = this.buildAssert();
-    this.assert.isRequired();
     for (const fn of this.chain) fn();
     return this.value;
   }
@@ -81,8 +79,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     value: RequiredReturn<Return, Options>,
     options?: Options,
   ) {
-    const { allowNull = false } = options ?? {};
-    this.opts.allowNull = allowNull;
+    this.opts.allowNull = options?.allowNull ?? false;
     if (this.isValueMissing) this.value = value as Return;
     return this.refine<
       RequiredReturn<Return, Options>,
@@ -91,9 +88,8 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   }
 
   public isRequired<Options extends NullableOptions>(options?: Options) {
-    const { allowNull = false } = options ?? {};
-    this.opts.allowNull = allowNull;
-    this.opts.isRequired = true;
+    this.opts.allowNull = options?.allowNull ?? false;
+    this.chain.push(() => this.assert.isRequired());
     return this.refine<
       RequiredReturn<Return, Options>,
       Override<State, { isNullableApplied: true }>
@@ -154,8 +150,8 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
 
     return {
       isRequired: () => {
-        if (!this.opts.isRequired || !this.isValueMissing) return;
-        const msg = `${subject} is required, but received ${actual}.`;
+        if (!this.isValueMissing) return;
+        const msg = `${subject} is marked as required, but received ${actual}.`;
         throw new ValidationError(msg);
       },
 
