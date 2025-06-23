@@ -10,13 +10,13 @@ export default defineConfig([
     files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     plugins: { js, jsdoc },
     extends: ['js/recommended'],
-  },
-  {
-    files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     languageOptions: { globals: globals.browser },
   },
   ts.configs.recommended,
-  jsdoc.configs['flat/recommended-typescript-error'],
+  {
+    files: ['**/*.{ts,mts,cts}'],
+    ...jsdoc.configs['flat/recommended-typescript-error'],
+  },
   {
     rules: {
       '@typescript-eslint/no-empty-object-type': 'off',
