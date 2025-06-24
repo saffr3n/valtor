@@ -8,6 +8,7 @@ export default function safeAccess(
   key: string | symbol,
   fallback?: unknown,
 ) {
+  if (!Object.hasOwn(obj, key)) return fallback;
   try {
     return obj[key as keyof typeof obj];
   } catch {
