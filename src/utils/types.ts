@@ -26,19 +26,23 @@ export type Extract<T, U> =
  * Excludes from `T` those types that are assignable to `U`.
  *
  * Note that this is not the standard `Exclude` type.
- * It allows _excluding_ `null` and `undefined` from `any` and `unknown`.
+ * It allows _excluding_ `null`, `undefined` and `{}` from `any` and `unknown`.
  *
  * @internal
  */
 export type Exclude<T, U> =
   IsUnknown<T> extends true
-    ? [Extract<U, null>] extends [never]
-      ? [Extract<U, undefined>] extends [never]
-        ? T
-        : {} | null
-      : [Extract<U, undefined>] extends [never]
-        ? {} | undefined
-        : {}
+    ? IsUnknown<U> extends true
+      ? never
+      : {} extends U
+        ? null | undefined
+        : [Extract<U, null>] extends [never]
+          ? [Extract<U, undefined>] extends [never]
+            ? T
+            : {} | null
+          : [Extract<U, undefined>] extends [never]
+            ? {} | undefined
+            : {}
     : T extends U
       ? never
       : T;
@@ -73,7 +77,6 @@ export type NonNullable<T> = Exclude<T, null | undefined>;
  *
  * @internal
  */
-
 export type IsPossibly<T, U> =
   IsUnknown<U> extends true
     ? true
@@ -88,5 +91,11 @@ export type IsPossibly<T, U> =
  *
  * @internal
  */
-export type Override<T, U extends { [K in keyof T]?: unknown }> = U
-  & Omit<T, keyof U>;
+export type Override<
+  T,
+  U extends {
+    [K in keyof T]?: unknown;
+  },
+> = [keyof U] extends [keyof T]
+  ? { [K in keyof T]: K extends keyof U ? U[K] : T[K] }
+  : never;

@@ -12,11 +12,8 @@ import type { EqualityOptions } from './methods/equality';
  *
  * @returns A new {@link Validator} instance.
  */
-export default function validate<Return>(
-  value: Return,
-  name?: string,
-): Validator<Return> {
-  return new ValidatorImpl(value, name);
+export default function validate<Return>(value: Return, name?: string) {
+  return new ValidatorImpl(value, name) as Validator<Return>;
 }
 
 export {
