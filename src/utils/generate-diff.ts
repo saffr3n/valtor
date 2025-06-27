@@ -6,11 +6,11 @@
  *
  * @internal
  */
-export default function generateDiff(actual: string, expected: string) {
-  const a = expected.split('\n');
-  const b = actual.split('\n');
-  const m = a.length;
-  const n = b.length;
+export default function generateDiff(oldText: string, newText: string) {
+  const a = oldText.split('\n');
+  const b = newText.split('\n');
+  const m = a.length === 1 && a[0] === '' ? 0 : a.length;
+  const n = b.length === 1 && b[0] === '' ? 0 : b.length;
 
   // Create a DP table with (m + 1) x (n + 1) dimensions.
   const dp: number[][] = Array.from({ length: m + 1 }, () =>
@@ -30,51 +30,34 @@ export default function generateDiff(actual: string, expected: string) {
 
   let i = m;
   let j = n;
-  const parts: { value: string; type: 'equal' | 'delete' | 'insert' }[] = [];
+  const parts: string[] = [];
 
   // Construct the diff from the DP table.
   while (i > 0 && j > 0) {
     if (a[i - 1] === b[j - 1]) {
-      parts.push({ value: a[i - 1], type: 'equal' });
+      parts.push(`  ${a[i - 1]}`);
       i--;
       j--;
     } else if (dp[i - 1][j] >= dp[i][j - 1]) {
-      parts.push({ value: a[i - 1], type: 'delete' });
+      parts.push(`- ${a[i - 1]}`);
       i--;
     } else {
-      parts.push({ value: b[j - 1], type: 'insert' });
+      parts.push(`+ ${b[j - 1]}`);
       j--;
     }
   }
 
-  // Add remaining lines from expected.
+  // Add remaining lines from oldText.
   while (i > 0) {
-    parts.push({ value: a[i - 1], type: 'delete' });
+    parts.push(`- ${a[i - 1]}`);
     i--;
   }
 
-  // Add remaining lines from actual.
+  // Add remaining lines from newText.
   while (j > 0) {
-    parts.push({ value: b[j - 1], type: 'insert' });
+    parts.push(`+ ${b[j - 1]}`);
     j--;
   }
 
-  // Build and return the diff output string.
-  let diff = '';
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const part = parts[i];
-    switch (part.type) {
-      case 'equal':
-        diff += `  ${part.value}`;
-        break;
-      case 'delete':
-        diff += `- ${part.value}`;
-        break;
-      case 'insert':
-        diff += `+ ${part.value}`;
-        break;
-    }
-    if (i !== 0) diff += '\n';
-  }
-  return diff;
+  return parts.reverse().join('\n');
 }
