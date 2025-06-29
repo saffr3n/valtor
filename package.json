@@ -1,7 +1,7 @@
 {
   "name": "valtor",
   "description": "TypeScript library for fluent, chainable validation.",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "type": "module",
   "main": "./lib/index.cjs",
   "module": "./lib/index.js",
@@ -34,21 +34,21 @@
     "format": "prettier -w src"
   },
   "devDependencies": {
-    "@eslint/js": "^9.29.0",
-    "@jest/globals": "^30.0.2",
-    "@types/node": "^22.15.32",
-    "eslint": "^9.29.0",
+    "@eslint/js": "^9.30.0",
+    "@jest/globals": "^30.0.3",
+    "@types/node": "^22.15.34",
+    "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-jsdoc": "^51.0.1",
+    "eslint-plugin-jsdoc": "^51.3.1",
     "expect-type": "^1.2.1",
     "globals": "^16.2.0",
-    "jest": "^30.0.2",
-    "prettier": "^3.5.3",
+    "jest": "^30.0.3",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "ts-jest": "^29.4.0",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.34.0"
+    "typescript-eslint": "^8.35.0"
   },
   "author": "Sergey Fomin <saffr3n@gmail.com>",
   "homepage": "https://github.com/saffr3n/valtor#readme",
