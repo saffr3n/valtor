@@ -1,7 +1,7 @@
 {
   "name": "valtor",
   "description": "TypeScript library for fluent, chainable validation.",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "type": "module",
   "main": "./lib/index.cjs",
   "module": "./lib/index.js",
@@ -30,8 +30,8 @@
     "test": "npm run check && jest",
     "build": "npm run clean && npm run test && tsup",
     "prepack": "npm run build",
-    "lint": "eslint src",
-    "format": "prettier -w src"
+    "lint": "eslint src tests",
+    "format": "prettier -w src tests"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.0",
