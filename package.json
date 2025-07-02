@@ -1,7 +1,7 @@
 {
   "name": "valtor",
   "description": "TypeScript library for fluent, chainable validation.",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "type": "module",
   "main": "./lib/index.cjs",
   "module": "./lib/index.js",
@@ -41,7 +41,6 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsdoc": "^51.3.1",
     "expect-type": "^1.2.1",
-    "globals": "^16.2.0",
     "jest": "^30.0.3",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
