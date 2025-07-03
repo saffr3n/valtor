@@ -59,7 +59,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   private value: Return;
   private name: string | undefined;
   private chain: (() => void)[] = [];
-  private assert!: ReturnType<ValidatorImpl<Return, State>['buildAssert']>;
+  private assert;
   private opts = {
     allowNull: false,
   };
@@ -67,10 +67,10 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   public constructor(value: Return, name?: string) {
     this.value = value;
     this.name = name;
+    this.assert = this.buildAssert();
   }
 
   public get() {
-    this.assert = this.buildAssert();
     for (const fn of this.chain) fn();
     return this.value;
   }
@@ -159,7 +159,6 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
   }
 
   private buildAssert() {
-    const actual = stringify(this.value);
     const subject = `The ${
       this.name ? `value of '${this.name}'` : 'validated value'
     }`;
@@ -167,12 +166,14 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     return {
       isRequired: () => {
         if (!this.isValueMissing) return;
+        const actual = stringify(this.value);
         const msg = `${subject} is marked as required, but received ${actual}.`;
         throw new ValidationError(msg);
       },
 
       isMissing: () => {
         if (this.isValueMissing) return;
+        const actual = stringify(this.value);
         const msg = `${subject} is marked as missing, but received ${actual}.`;
         throw new ValidationError(msg);
       },
@@ -180,6 +181,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
       isEqual: (value: unknown, options?: EqualityOptions) => {
         if (isEqual(this.value, value, options)) return;
         const msg = `${subject} doesn't match the expected value.`;
+        const actual = stringify(this.value);
         const expected = stringify(value);
         const diff = generateDiff(actual, expected);
         const detail = `Actual (+) vs (-) Expected:\n${diff}`;
@@ -197,6 +199,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
       isIn: (values: readonly unknown[], options?: EqualityOptions) => {
         if (values.some((v) => isEqual(this.value, v, options))) return;
         const msg = `${subject} doesn't match any of the expected values.`;
+        const actual = stringify(this.value);
         const diffs = values.map((v) => {
           const expected = stringify(v);
           return generateDiff(actual, expected);
