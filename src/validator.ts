@@ -183,7 +183,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
         const msg = `${subject} doesn't match the expected value.`;
         const actual = stringify(this.value);
         const expected = stringify(value);
-        const diff = generateDiff(actual, expected);
+        const diff = generateDiff(expected, actual);
         const detail = `Actual (+) vs (-) Expected:\n${diff}`;
         throw new ValidationError(`${msg}\n\n${detail}`);
       },
@@ -202,7 +202,7 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
         const actual = stringify(this.value);
         const diffs = values.map((v) => {
           const expected = stringify(v);
-          return generateDiff(actual, expected);
+          return generateDiff(expected, actual);
         });
         const list = this.listify(diffs);
         const detail = `Actual (+) vs (-) Expected:\n${list}`;
