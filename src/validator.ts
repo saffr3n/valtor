@@ -20,7 +20,28 @@ import type validate from './index';
 /** @internal */
 export interface ValidatorState {
   isNullableApplied: boolean;
+  canSetError: boolean;
   canSetFallback: boolean;
+}
+
+export interface ValidatorOptions<Return> {
+  /**
+   * An optional name for the validated value, used in error messages.
+   */
+  name?: string;
+
+  /**
+   * An optional global error to throw instead of built-in errors.
+   *
+   * One of the following:
+   * - a custom message for {@link ValidationError}
+   * - a custom {@link Error} instance
+   * - a factory function that returns one of the above
+   *
+   * Note that errors provided via {@link IBaseMethods.withError | withError()}
+   * method take precedence over both built-in errors and the global error.
+   */
+  error?: string | Error | ErrorFactory<Return>;
 }
 
 /**
@@ -31,7 +52,7 @@ export interface ValidatorState {
  * @internal
  */
 export interface IValidator<Return, State extends ValidatorState>
-  extends IBaseMethods<Return>,
+  extends IBaseMethods<Return, State>,
     INullableMethods<Return, State>,
     IEqualityMethods<Return, State> {}
 
@@ -46,33 +67,84 @@ export type Validator<
   Return,
   State extends ValidatorState = {
     isNullableApplied: false;
+    canSetError: false;
     canSetFallback: IsPossibly<null | undefined, Return>;
   },
-> = BaseMethods<Return>
+> = BaseMethods<Return, State>
   & NullableMethods<Return, State>
   & EqualityMethods<Return, State>;
+
+/**
+ * A factory function that takes the current validated value and returns one of
+ * the following:
+ * - a custom message for {@link ValidationError}
+ * - a custom {@link Error} instance
+ */
+export type ErrorFactory<Return> = (value: Return) => string | Error;
+
+/** @internal */
+interface ChainFn {
+  (): void | Promise<void>;
+  err?: Error;
+}
 
 /** @internal */
 export default class ValidatorImpl<Return, State extends ValidatorState>
   implements IValidator<Return, State>
 {
-  private value: Return;
-  private name: string | undefined;
-  private chain: (() => void)[] = [];
+  private value;
+  private opts;
   private assert;
-  private opts = {
-    allowNull: false,
-  };
+  private chain: ChainFn[] = [];
 
-  public constructor(value: Return, name?: string) {
+  public constructor(value: Return, options: ValidatorOptions<Return> = {}) {
     this.value = value;
-    this.name = name;
+    this.opts = {
+      name: options.name,
+      err: options.error,
+      allowNull: false,
+    };
     this.assert = this.buildAssert();
   }
 
-  public get() {
-    for (const fn of this.chain) fn();
+  public async get() {
+    for (const fn of this.chain) {
+      try {
+        await fn();
+      } catch (err) {
+        if (fn.err) throw fn.err;
+        if (this.opts.err) throw this.wrapError(this.opts.err);
+        throw err;
+      }
+    }
     return this.value;
+  }
+
+  public custom<NewReturn>(
+    callback: (value: Return) => NewReturn | Promise<NewReturn>,
+  ) {
+    this.chain.push(async () => {
+      this.value = (await callback(this.value)) as Return;
+    });
+    return this.refine<
+      NewReturn,
+      Override<
+        State,
+        {
+          canSetError: false;
+          canSetFallback: State['canSetFallback'] extends true
+            ? NewReturn extends Return
+              ? true
+              : false
+            : false;
+        }
+      >
+    >();
+  }
+
+  public withError(error: string | Error | ErrorFactory<Return>) {
+    this.chain[this.chain.length - 1].err = this.wrapError(error);
+    return this.refine<Return, Override<State, { canSetError: false }>>();
   }
 
   public setFallback<Options extends NullableOptions>(
@@ -83,7 +155,10 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     if (this.isValueMissing) this.value = value as Return;
     return this.refine<
       RequiredReturn<Return, Options>,
-      Override<State, { canSetFallback: false; isNullableApplied: true }>
+      Override<
+        State,
+        { canSetFallback: false; canSetError: false; isNullableApplied: true }
+      >
     >();
   }
 
@@ -92,12 +167,15 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     this.chain.push(() => this.assert.isRequired());
     return this.refine<
       RequiredReturn<Return, Options>,
-      Override<State, { isNullableApplied: true }>
+      Override<State, { isNullableApplied: true; canSetError: true }>
     >();
   }
 
   public notRequired() {
-    return this.refine<Return, Override<State, { isNullableApplied: true }>>();
+    return this.refine<
+      Return,
+      Override<State, { isNullableApplied: true; canSetError: false }>
+    >();
   }
 
   public isMissing<Options extends NullableOptions>(options?: Options) {
@@ -108,7 +186,10 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
         Return,
         Options['allowNull'] extends true ? undefined : null | undefined
       >,
-      Override<State, { isNullableApplied: true; canSetFallback: false }>
+      Override<
+        State,
+        { isNullableApplied: true; canSetFallback: false; canSetError: true }
+      >
     >();
   }
 
@@ -148,7 +229,10 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     return this.refine<Exclude<Return, Values[number]>>();
   }
 
-  private refine<NewReturn, NewState extends ValidatorState = State>() {
+  private refine<
+    NewReturn,
+    NewState extends ValidatorState = Override<State, { canSetError: true }>,
+  >() {
     return this as unknown as Validator<NewReturn, NewState>;
   }
 
@@ -158,10 +242,14 @@ export default class ValidatorImpl<Return, State extends ValidatorState>
     );
   }
 
+  private wrapError(error: string | Error | ErrorFactory<Return>) {
+    const err = typeof error === 'function' ? error(this.value) : error;
+    return typeof err === 'string' ? new ValidationError(err) : err;
+  }
+
   private buildAssert() {
-    const subject = `The ${
-      this.name ? `value of '${this.name}'` : 'validated value'
-    }`;
+    const { name } = this.opts;
+    const subject = `The ${name ? `value of '${name}'` : 'validated value'}`;
 
     return {
       isRequired: () => {

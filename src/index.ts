@@ -1,4 +1,8 @@
-import ValidatorImpl, { type Validator } from './validator';
+import ValidatorImpl, {
+  type ErrorFactory,
+  type Validator,
+  type ValidatorOptions,
+} from './validator';
 import ValidationError from './utils/validation-error';
 import type { NullableOptions } from './methods/nullable';
 import type { EqualityOptions } from './methods/equality';
@@ -8,17 +12,22 @@ import type { EqualityOptions } from './methods/equality';
  *
  * @param value - The value to validate.
  *
- * @param name - An optional name for the `value`, used in error messages.
+ * @param options - Optional settings.
  *
  * @returns A new {@link Validator} instance.
  */
-export default function validate<Return>(value: Return, name?: string) {
-  return new ValidatorImpl(value, name) as Validator<Return>;
+export default function validate<Return>(
+  value: Return,
+  options?: ValidatorOptions<Return>,
+) {
+  return new ValidatorImpl(value, options) as Validator<Return>;
 }
 
 export {
   ValidationError,
+  type ErrorFactory,
   type Validator,
+  type ValidatorOptions,
   type NullableOptions,
   type EqualityOptions,
 };

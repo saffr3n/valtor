@@ -32,7 +32,10 @@ interface SetFallback<Return, State extends ValidatorState> {
     options?: Options,
   ): Validator<
     RequiredReturn<Return, Options>,
-    Override<State, { canSetFallback: false; isNullableApplied: true }>
+    Override<
+      State,
+      { canSetFallback: false; canSetError: false; isNullableApplied: true }
+    >
   >;
 }
 
@@ -49,7 +52,7 @@ interface IsRequired<Return, State extends ValidatorState> {
     options?: Options,
   ): Validator<
     RequiredReturn<Return, Options>,
-    Override<State, { isNullableApplied: true }>
+    Override<State, { isNullableApplied: true; canSetError: true }>
   >;
 }
 
@@ -62,7 +65,7 @@ interface NotRequired<Return, State extends ValidatorState> {
    */
   notRequired(): Validator<
     Return,
-    Override<State, { isNullableApplied: true }>
+    Override<State, { isNullableApplied: true; canSetError: false }>
   >;
 }
 
@@ -82,7 +85,10 @@ interface IsMissing<Return, State extends ValidatorState> {
       Return,
       Options['allowNull'] extends true ? undefined : null | undefined
     >,
-    Override<State, { isNullableApplied: true; canSetFallback: false }>
+    Override<
+      State,
+      { isNullableApplied: true; canSetFallback: false; canSetError: true }
+    >
   >;
 }
 
@@ -99,7 +105,7 @@ interface NotMissing<Return, State extends ValidatorState> {
     options?: Options,
   ): Validator<
     RequiredReturn<Return, Options>,
-    Override<State, { isNullableApplied: true }>
+    Override<State, { isNullableApplied: true; canSetError: true }>
   >;
 }
 

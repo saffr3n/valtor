@@ -1,5 +1,5 @@
 import type { IValidator, Validator, ValidatorState } from '../validator';
-import type { Exclude } from '../utils/types';
+import type { Exclude, Override } from '../utils/types';
 
 export interface EqualityOptions {
   /**
@@ -25,7 +25,7 @@ interface IsEqual<Return, State extends ValidatorState> {
   isEqual<const Value extends Return>(
     value: Value,
     options?: EqualityOptions,
-  ): Validator<Value, State>;
+  ): Validator<Value, Override<State, { canSetError: true }>>;
 }
 
 /** @internal */
@@ -42,7 +42,7 @@ interface NotEqual<Return, State extends ValidatorState> {
   notEqual<const Value extends Return>(
     value: Value,
     options?: EqualityOptions,
-  ): Validator<Exclude<Return, Value>, State>;
+  ): Validator<Exclude<Return, Value>, Override<State, { canSetError: true }>>;
 }
 
 /** @internal */
@@ -59,7 +59,7 @@ interface IsIn<Return, State extends ValidatorState> {
   isIn<const Values extends readonly Return[]>(
     values: Values,
     options?: EqualityOptions,
-  ): Validator<Values[number], State>;
+  ): Validator<Values[number], Override<State, { canSetError: true }>>;
 }
 
 /** @internal */
@@ -76,7 +76,10 @@ interface NotIn<Return, State extends ValidatorState> {
   notIn<const Values extends readonly Return[]>(
     values: Values,
     options?: EqualityOptions,
-  ): Validator<Exclude<Return, Values[number]>, State>;
+  ): Validator<
+    Exclude<Return, Values[number]>,
+    Override<State, { canSetError: true }>
+  >;
 }
 
 /**

@@ -17,7 +17,7 @@ npm install valtor
 ```ts
 import validate from 'valtor';
 
-const NODE_ENV = validate(process.env.NODE_ENV, 'NODE_ENV')
+const NODE_ENV = await validate(process.env.NODE_ENV)
   .isIn(['production', 'development', 'test'])
   .setFallback('development')
   .get();
