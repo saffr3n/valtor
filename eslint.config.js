@@ -13,6 +13,12 @@ export default config(
     },
   },
   {
+    files: ['**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+  {
     files: ['**/*.ts'],
     extends: [jsdoc.configs['flat/recommended-typescript-error']],
     rules: {
